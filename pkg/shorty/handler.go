@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -36,11 +37,20 @@ func (h *Handler) Create() http.HandlerFunc {
 		w.Header().Set("content-type", "application/json; charset=UTF-8")
 
 		if short = h.extractShort(w, r); short == "" {
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		if shortened, err = h.extractShortened(w, r); err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			h.encodeErr(w, err)
 			return
 		}
+		if err = h.validateURL(r, shortened.URL); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			h.encodeErr(w, err)
+			return
+		}
+
 		shortened.Short = short
 		shortened.CreatedAt = time.Now().Unix()
 
@@ -63,14 +73,17 @@ func (h *Handler) Read() http.HandlerFunc {
 		var err error
 
 		if short = h.extractShort(w, r); short == "" {
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		log.Printf("Searching for long URL for short string '%s'", short)
 		if shortened, err = h.retrieve(w, r, short); err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			h.encodeErr(w, err)
 			return
 		}
-		if shortened.URL == "" {
+		if shortened == nil {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -108,7 +121,6 @@ func (h *Handler) extractShort(w http.ResponseWriter, r *http.Request) string {
 
 	if short, err = h.extractVar(r, "short"); err != nil {
 		log.Printf("Error on extracting 'short': '%s'", err)
-		w.WriteHeader(http.StatusBadRequest)
 		h.encodeErr(w, err)
 		return ""
 	}
@@ -139,19 +151,37 @@ func (h *Handler) extractShortened(w http.ResponseWriter, r *http.Request) (*Sho
 
 	if bodyBytes, err = h.readBody(r.Body); err != nil {
 		log.Printf("Error on reading body bytes: '%s'", err)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		h.encodeErr(w, err)
 		return nil, err
 	}
-
 	if err = json.Unmarshal(bodyBytes, &shortened); err != nil {
 		log.Printf("Error on marshaling bytes to Shortened instance: '%s'", err)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		h.encodeErr(w, err)
 		return nil, err
 	}
 
 	return shortened, nil
+}
+
+// validateURL check if informed URL is valid and does not point to the same redirect service.
+func (h *Handler) validateURL(r *http.Request, longURL string) error {
+	var parsed *url.URL
+	var err error
+
+	if longURL == "" {
+		return fmt.Errorf("empty URL informed")
+	}
+	if parsed, err = url.Parse(longURL); err != nil {
+		return err
+	}
+
+	hostname := parsed.Hostname()
+	if hostname == r.Host {
+		return fmt.Errorf("redirects to the same service hostname ('%s') is not allowed", hostname)
+	}
+	if hostname == "127.0.0.1" || hostname == "localhost" {
+		return fmt.Errorf("redirects to localhost are not allowed")
+	}
+
+	return nil
 }
 
 // retrieve shortned instance based on short string, from database.
@@ -162,7 +192,7 @@ func (h *Handler) retrieve(w http.ResponseWriter, r *http.Request, short string)
 	if shortened, err = h.persistence.Read(short); err != nil {
 		if h.persistence.IsErrNoRows(err) {
 			log.Printf("No URL found for '%s' short string", short)
-			return shortened, nil
+			return nil, nil
 		}
 
 		log.Printf("Error on reading persisted data: '%s'", err)
