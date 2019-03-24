@@ -1,19 +1,28 @@
 <p align="center"><img src="./assets/logo/shorty.png"/></p>
 
 [![Build Status](https://travis-ci.com/otaviof/shorty.svg?branch=master)](https://travis-ci.com/otaviof/shorty)
+[![codecov](https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg)](https://codecov.io/gh/otaviof/shorty)
+
+
 
 # `shorty`
 
-Shorty is yet another URL shortener service. Basically, you an informa a arbritary string to Shorty
-plus a long URL, and next time you query the short string it will redirect the request to the
-original URL.
+Shorty is yet another URL shortener application. Basically, you inform a URL plus a arbitrary
+string to Shorty, and then based on the short string Shorty will redirect your request to the orginal
+URL. Simple like that.
 
-# Installing
+# Running
 
-Via `go get`:
+Install `shorty` using `go get`:
 
 ``` bash
 go get -x -u github.com/otaviof/shorty/cmd/shorty
+```
+
+And then:
+
+``` bash
+shorty --database-file /var/tmp/shorty.sqlite
 ```
 
 ## Docker
@@ -24,7 +33,7 @@ To run Shorty via Docker, use:
 docker run --publish "8000:8000" otaviof/shorty:latest
 ```
 
-Alternatively, you can share a local volume to persist its database, via:
+Alternatively, you can share a local volume to persist its database file:
 
 ``` bash
 docker run --publish "8000:8000" --volume "<VOLUME_PATH>:/var/lib/shorty" otaviof/shorty:latest
@@ -58,8 +67,8 @@ curl -L http://127.0.0.1:8000/shorty
 
 Application configuration can also be set via environment variables, or command-line parameters,
 where the environment overwrites command-line. So for instance, if you want to set `--address`
-option, you can export `SHORTY_ADDRESS`, having the prefix as application name  followed by option
-name, split by underscore.
+option, you can export `SHORTY_ADDRESS` in environment. By setting the prefix as application name
+(`SHORTY_`), followed by option name, in this case `ADDRESS`, split by underscore and all capitals.
 
 The following options are available:
 
@@ -73,7 +82,7 @@ The following options are available:
 
 # Persistence
 
-Backend storage is currently using SQLlite. This application creates a table that's able to store
+Backend storage is currently using SQLite. This application creates a table that's able to store
 the records from the REST interface, and does not allow repetition of short strings.
 
 # Development
