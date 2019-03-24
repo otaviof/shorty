@@ -1,5 +1,7 @@
 <p align="center"><img src="./assets/logo/shorty.png"/></p>
 
+[![Build Status](https://travis-ci.com/otaviof/shorty.svg?branch=master)](https://travis-ci.com/otaviof/shorty)
+
 # `shorty`
 
 Shorty is yet another URL shortener service. Basically, you an informa a arbritary string to Shorty
@@ -93,6 +95,7 @@ And the most relevant files:
 | File              | Role    | Description                                        |
 |-------------------|---------|----------------------------------------------------|
 | `.goreleaser.yml` | build   | Build the project and organize a release on Github |
+| `.travis.yml`     | CI      | Drives Travis-CI actions                           |
 | `Dockerfile`      | build   | Docker image manifest                              |
 | `Gopkg.*`         | build   | Dep, vendor management                             |
 | `Makefile`        | build   | Automation of actions against project              |

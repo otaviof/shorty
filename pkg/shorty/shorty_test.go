@@ -15,7 +15,7 @@ func TestShortyNewShorty(t *testing.T) {
 	var err error
 
 	config := NewConfig()
-	config.DatabaseFile = "../../.data/shorty.sqlite"
+	config.DatabaseFile = "/var/tmp/shorty-test.sqlite"
 	shorty, err = NewShorty(config)
 
 	assert.Nil(t, err)

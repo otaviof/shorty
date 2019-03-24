@@ -32,7 +32,9 @@ release-go:
 	goreleaser --rm-dist
 
 release-docker: build-docker
+	docker tag $(DOCKER_IMAGE):$(VERSION) $(DOCKER_IMAGE):latest
 	docker push $(DOCKER_IMAGE):$(VERSION)
+	docker push $(DOCKER_IMAGE):latest
 
 snapshot:
 	goreleaser --rm-dist --snapshot
