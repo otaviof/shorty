@@ -36,8 +36,9 @@ func (h *Handler) Create() http.HandlerFunc {
 
 		w.Header().Set("content-type", "application/json; charset=UTF-8")
 
-		if short = h.extractShort(w, r); short == "" {
+		if short = h.extractShort(r); short == "" {
 			w.WriteHeader(http.StatusBadRequest)
+			h.encodeErr(w, fmt.Errorf("short string is not found as sub-path"))
 			return
 		}
 		if shortened, err = h.extractShortened(w, r); err != nil {
@@ -55,7 +56,9 @@ func (h *Handler) Create() http.HandlerFunc {
 		shortened.CreatedAt = time.Now().Unix()
 
 		log.Printf("Saving short string '%s' for URL '%s'", shortened.Short, shortened.URL)
-		if err = h.persist(w, r, shortened); err != nil {
+		if err = h.persistence.Write(shortened); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			h.encodeErr(w, err)
 			return
 		}
 
@@ -72,14 +75,15 @@ func (h *Handler) Read() http.HandlerFunc {
 		var shortened *Shortened
 		var err error
 
-		if short = h.extractShort(w, r); short == "" {
+		if short = h.extractShort(r); short == "" {
 			w.WriteHeader(http.StatusBadRequest)
+			h.encodeErr(w, fmt.Errorf("short string is not found as sub-path"))
 			return
 		}
 
 		log.Printf("Searching for long URL for short string '%s'", short)
 		if shortened, err = h.retrieve(w, r, short); err != nil {
-			w.WriteHeader(http.StatusUnprocessableEntity)
+			w.WriteHeader(http.StatusInternalServerError)
 			h.encodeErr(w, err)
 			return
 		}
@@ -115,13 +119,12 @@ func (h *Handler) extractVar(r *http.Request, name string) (string, error) {
 }
 
 // extractShort short string used in sub-path.
-func (h *Handler) extractShort(w http.ResponseWriter, r *http.Request) string {
+func (h *Handler) extractShort(r *http.Request) string {
 	var short string
 	var err error
 
 	if short, err = h.extractVar(r, "short"); err != nil {
 		log.Printf("Error on extracting 'short': '%s'", err)
-		h.encodeErr(w, err)
 		return ""
 	}
 
@@ -202,16 +205,6 @@ func (h *Handler) retrieve(w http.ResponseWriter, r *http.Request, short string)
 	}
 
 	return shortened, nil
-}
-
-// persist shortened instance to database.
-func (h *Handler) persist(w http.ResponseWriter, r *http.Request, shortened *Shortened) error {
-	if err := h.persistence.Write(shortened); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		h.encodeErr(w, err)
-		return err
-	}
-	return nil
 }
 
 // writeJSON using response-writer instance to marshal any payload.

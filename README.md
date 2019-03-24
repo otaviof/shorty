@@ -3,8 +3,6 @@
 [![Build Status](https://travis-ci.com/otaviof/shorty.svg?branch=master)](https://travis-ci.com/otaviof/shorty)
 [![codecov](https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg)](https://codecov.io/gh/otaviof/shorty)
 
-
-
 # `shorty`
 
 Shorty is yet another URL shortener application. Basically, you inform a URL plus a arbitrary
