@@ -8,8 +8,8 @@
 # `shorty`
 
 Shorty is yet another URL shortener application. Basically, you inform a URL plus a arbitrary
-string to Shorty, and then based on the short string Shorty will redirect your request to the orginal
-URL. Simple like that.
+string to Shorty, and then based on the short string Shorty will redirect your request to the
+original URL. Simple like that.
 
 # Running
 
