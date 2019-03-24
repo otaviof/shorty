@@ -40,7 +40,7 @@ snapshot:
 	goreleaser --rm-dist --snapshot
 
 test:
-	go test -cover -v pkg/$(APP)/*
+	go test -race -coverprofile=coverage.txt -covermode=atomic -cover -v pkg/$(APP)/*
 
 integration:
 	go test -v $(E2E_TEST_DIR)/*

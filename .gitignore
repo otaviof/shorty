@@ -1,5 +1,6 @@
 .data
 .env
 .vscode
+coverage.txt
 build
 vendor
