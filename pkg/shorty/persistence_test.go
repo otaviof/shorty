@@ -16,11 +16,16 @@ const (
 
 var persistence *Persistence
 
+// DeleteDatabaseFile making sure database file is removed before starting
+func DeleteDatabaseFile(t *testing.T) {
+	t.Logf("Deleting database-file: '%s'", databaseFile)
+	_ = os.Remove(databaseFile)
+}
+
 func TestPersistenceNew(t *testing.T) {
 	var err error
 
-	// making sure database file is removed before starting
-	_ = os.Remove(databaseFile)
+	DeleteDatabaseFile(t)
 
 	config := &Config{DatabaseFile: databaseFile}
 	persistence, err = NewPersistence(config)
