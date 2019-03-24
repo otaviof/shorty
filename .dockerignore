@@ -1,0 +1,9 @@
+.editorconfig
+.env
+.git*
+.goreleaser*
+.vscode
+README.md
+build
+test
+vendor
