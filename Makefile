@@ -1,5 +1,6 @@
 APP = shorty
 BUILD_DIR ?= build
+E2E_TEST_DIR ?= test/e2e
 DOCKER_IMAGE ?= "otaviof/$(APP)"
 VERSION ?= $(shell cat ./version)
 
@@ -38,3 +39,6 @@ snapshot:
 
 test:
 	go test -cover -v pkg/$(APP)/*
+
+integration:
+	go test -v $(E2E_TEST_DIR)/*
