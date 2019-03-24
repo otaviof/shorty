@@ -1,0 +1,23 @@
+---
+project_name: shorty
+dist: ./build/dist
+
+archive:
+  format: tar.gz
+
+builds:
+  - binary: shorty
+    ldflags: -s -w
+    main: ./cmd/shorty/shorty.go
+    env:
+      - CGO_ENABLED=1
+      - CC=gcc
+      - CXX=g++
+    flags:
+      - -a
+      - -tags
+      - extended
+    goos:
+      - darwin
+    goarch:
+      - amd64
