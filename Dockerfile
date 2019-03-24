@@ -33,13 +33,19 @@ ENV GO_DOMAIN="github.com" \
     GO_PROJECT="shorty"
 
 ENV APP_DIR="${GOPATH}/src/${GO_DOMAIN}/${GO_GROUP}/${GO_PROJECT}" \
-    SHORTY_DATA="/var/lib/shorty"
+    USER_UID="1111" \
+    SHORTY_DATA="/var/lib/shorty" \
+    SHORTY_DATABASE_FILE="/var/lib/shorty/shorty.sqlite" \
+    SHORTY_ADDRESS="0.0.0.0:8000"
+
 
 RUN apk --update add bash
 COPY --from=builder ${APP_DIR}/build/${GO_PROJECT} /usr/local/bin/${GO_PROJECT}
 
-RUN mkdir -v -p ${SHORTY_DATA}}
+RUN adduser -h ${SHORTY_DATA} -D -u ${USER_UID} ${GO_PROJECT}
 VOLUME ${SHORTY_DATA}
+WORKDIR ${SHORTY_DATA}}
 
-WORKDIR /
 ENTRYPOINT [ "/usr/local/bin/shorty" ]
+
+USER ${USER_UID}
