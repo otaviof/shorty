@@ -68,7 +68,13 @@ where the environment overwrites command-line. So for instance, if you want to s
 option, you can export `SHORTY_ADDRESS` in environment. By setting the prefix as application name
 (`SHORTY_`), followed by option name, in this case `ADDRESS`, split by underscore and all capitals.
 
-The following options are available:
+The basic usage is:
+
+``` bash
+shorty [flags]
+```
+
+Where the following flags are available:
 
 - `--address`: address and port to listen on;
 - `--database-file`: database file path;
@@ -76,18 +82,21 @@ The following options are available:
 - `--read-timeout`: read timeout, in second;
 - `--write-timeout`: write timeout, in seconds;
 - `--sqlite-flags`: connection string SQLite flags;
-- `--help`: to consider command-line help and now more about parameters;
+- `--help`: shows command-line help message;
 
 # Persistence
 
-Backend storage is currently using SQLite. This application creates a table that's able to store
+Backend storage is currently using SQLite. This application creates a `table` that's able to store
 the records from the REST interface, and does not allow repetition of short strings.
+
+On command-line or environment you can specify the location of the database file, by default data is
+located on `/var/lib/shorty` directory.
 
 # Development
 
 ## Project Structure
 
-The most relevant directories are organized this way:
+Following a description of directory and files important on how this project is organized.
 
 | Folder       | Role  | Description                    |
 |--------------|-------|--------------------------------|
@@ -97,7 +106,7 @@ The most relevant directories are organized this way:
 | `test/e2e`   | tst   | Integration tests              |
 | `vendor`     | build | Vendor directory, dependencies |
 
-And the most relevant files:
+Regarding the relevant files:
 
 | File              | Role    | Description                                        |
 |-------------------|---------|----------------------------------------------------|
