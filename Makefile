@@ -8,6 +8,9 @@ VERSION ?= $(shell cat ./version)
 
 default: build
 
+dep:
+	go get -u github.com/golang/dep/cmd/dep
+
 bootstrap:
 	dep ensure -v -vendor-only
 
@@ -44,3 +47,7 @@ test:
 
 integration:
 	go test -v $(E2E_TEST_DIR)/*
+
+codecov:
+	curl -s -o .ci/codecov.sh https://codecov.io/bash
+	bash .ci/codecov.sh -t $(CODECOV_TOKEN)

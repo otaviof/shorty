@@ -4,11 +4,11 @@ go:
   - 1.11.x
 install: true
 before_script:
-  - go get -u github.com/golang/dep/cmd/dep
+  - make dep
 script:
   - make bootstrap
   - make
   - make test
   - make integration
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
+  - make codecov
