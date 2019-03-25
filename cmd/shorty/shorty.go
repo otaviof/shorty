@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strings"
 
 	shorty "github.com/otaviof/shorty/pkg/shorty"
@@ -40,9 +39,14 @@ func runShortyApp(cmd *cobra.Command, args []string) {
 	var app *shorty.Shorty
 
 	config := bootstrapConfig()
+	if err = config.Validate(); err != nil {
+		panic(err)
+	}
+
 	if app, err = shorty.NewShorty(config); err != nil {
 		panic(err)
 	}
+
 	app.Run()
 }
 
@@ -82,6 +86,6 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatalf("[MAIN] %s", err)
+		panic(err)
 	}
 }
