@@ -34,6 +34,7 @@ var app *shorty.Shorty
 func TestShorty(t *testing.T) {
 	t.Run("START", start)
 	t.Run("GET on application root", getSlash)
+	t.Run("GET on metrics endpoint", getMetrics)
 	t.Run("POST URL using short string as sub-path", postShort)
 	t.Run("REDIRECT after GET on short string sub-path", getShort)
 	t.Run("STOP", stop)
@@ -85,6 +86,21 @@ func getSlash(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.Equal(t, "{\"app\":\"shorty\"}", string(readBody(t, res.Body)))
+}
+
+func getMetrics(t *testing.T) {
+	metricsURL := fmt.Sprintf("%s/metrics", testURL())
+	req, err := http.NewRequest("GET", metricsURL, nil)
+
+	transport := http.Transport{}
+	res, err := transport.RoundTrip(req)
+
+	t.Logf("GET Request on '%s' returned code '%d'", metricsURL, res.StatusCode)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.True(t, len(readBody(t, res.Body)) > 0)
+
 }
 
 func postShort(t *testing.T) {

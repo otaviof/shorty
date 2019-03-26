@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Shorty main application component.
@@ -43,12 +44,14 @@ func (s Shorty) httpServer() {
 
 // setUpRoutes define how the routes are configured for this application.
 func (s *Shorty) setUpRoutes() {
+	s.router.Methods("GET").Path("/metrics").Name("metrics").
+		Handler(prometheus.Handler())
 	s.router.Methods("GET").Path("/").Name("slash").
-		Handler(Logger(s.handler.Slash(), "slash"))
+		Handler(Logger(prometheus.InstrumentHandlerFunc("slash", s.handler.Slash()), "slash"))
 	s.router.Methods("GET").Path("/{short}").Name("read").
-		Handler(Logger(s.handler.Read(), "read"))
+		Handler(Logger(prometheus.InstrumentHandlerFunc("read", s.handler.Read()), "read"))
 	s.router.Methods("POST").Path("/{short}").Name("create").
-		Handler(Logger(s.handler.Create(), "create"))
+		Handler(Logger(prometheus.InstrumentHandlerFunc("create", s.handler.Create()), "create"))
 }
 
 // Run creates the runtime instance, add routes and start http-server.
