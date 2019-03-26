@@ -1,7 +1,14 @@
-<p align="center"><img src="./assets/logo/shorty.png"/></p>
-
-[![Build Status](https://travis-ci.com/otaviof/shorty.svg?branch=master)](https://travis-ci.com/otaviof/shorty)
-[![codecov](https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg)](https://codecov.io/gh/otaviof/shorty)
+<p align="center">
+    <img alt="Project Logo" src="./assets/logo/shorty.svg"/>
+</p>
+<p align="center">
+    <a alt="Build Status" href="https://travis-ci.com/otaviof/shorty">
+        <img src="https://travis-ci.com/otaviof/shorty.svg?branch=master">
+    </a>
+    <a alt="Code Coverage" href="https://codecov.io/gh/otaviof/shorty">
+        <img src="https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg">
+    </a>
+</p>
 
 # `shorty`
 
