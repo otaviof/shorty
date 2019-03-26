@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="Project Logo" src="./assets/logo/shorty.svg"/>
+    <img alt="Project Logo" src="./assets/logo/shorty.png"/>
 </p>
 <p align="center">
     <a alt="Build Status" href="https://travis-ci.com/otaviof/shorty">
