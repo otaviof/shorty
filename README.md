@@ -90,20 +90,20 @@ Over the endpoint `/metrics` this application offers Prometheus compatible metri
 
 ``` bash
 $ curl -s http://127.0.0.1:8000/metrics |tail
-http_response_size_bytes{handler="read",quantile="0.5"} NaN
-http_response_size_bytes{handler="read",quantile="0.9"} NaN
-http_response_size_bytes{handler="read",quantile="0.99"} NaN
+http_response_size_bytes{handler="read",quantile="0.5"} 0
+http_response_size_bytes{handler="read",quantile="0.9"} 0
+http_response_size_bytes{handler="read",quantile="0.99"} 0
 http_response_size_bytes_sum{handler="read"} 0
-http_response_size_bytes_count{handler="read"} 0
-http_response_size_bytes{handler="slash",quantile="0.5"} NaN
-http_response_size_bytes{handler="slash",quantile="0.9"} NaN
-http_response_size_bytes{handler="slash",quantile="0.99"} NaN
-http_response_size_bytes_sum{handler="slash"} 0
-http_response_size_bytes_count{handler="slash"} 0
+http_response_size_bytes_count{handler="read"} 4
+http_response_size_bytes{handler="slash",quantile="0.5"} 16
+http_response_size_bytes{handler="slash",quantile="0.9"} 16
+http_response_size_bytes{handler="slash",quantile="0.99"} 16
+http_response_size_bytes_sum{handler="slash"} 32
+http_response_size_bytes_count{handler="slash"} 2
 ```
 
 The endpoints are named `read`, `create` and `slash`, where `read` redirect the requests while
-`create` receive POST requests to save new URLs. The root endpoint, or `slash` only displays the
+`create` receive POST requests to save new URLs. The root endpoint, or `slash`, only display the
 application name.
 
 # Persistence
