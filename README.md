@@ -84,6 +84,28 @@ Where the following flags are available:
 - `--sqlite-flags`: connection string SQLite flags;
 - `--help`: shows command-line help message;
 
+## Instrumentation
+
+Over the endpoint `/metrics` this application offers Prometheus compatible metrics. For instance:
+
+``` bash
+$ curl -s http://127.0.0.1:8000/metrics |tail
+http_response_size_bytes{handler="read",quantile="0.5"} NaN
+http_response_size_bytes{handler="read",quantile="0.9"} NaN
+http_response_size_bytes{handler="read",quantile="0.99"} NaN
+http_response_size_bytes_sum{handler="read"} 0
+http_response_size_bytes_count{handler="read"} 0
+http_response_size_bytes{handler="slash",quantile="0.5"} NaN
+http_response_size_bytes{handler="slash",quantile="0.9"} NaN
+http_response_size_bytes{handler="slash",quantile="0.99"} NaN
+http_response_size_bytes_sum{handler="slash"} 0
+http_response_size_bytes_count{handler="slash"} 0
+```
+
+The endpoints are named `read`, `create` and `slash`, where `read` redirect the requests while
+`create` receive POST requests to save new URLs. The root endpoint, or `slash` only displays the
+application name.
+
 # Persistence
 
 Backend storage is currently using SQLite. This application creates a `table` that's able to store
