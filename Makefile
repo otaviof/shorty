@@ -26,10 +26,7 @@ clean:
 clean-vendor:
 	rm -rf ./vendor > /dev/null
 
-release: release-go release-docker
-	@echo "# Uploaded $(APP) v$(VERSION)!"
-
-release-go:
+release:
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	goreleaser --rm-dist
