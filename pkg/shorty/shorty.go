@@ -6,13 +6,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	ocpromexp "go.opencensus.io/exporter/prometheus"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
-
-	"github.com/gin-gonic/gin"
 )
 
 // Shorty main application component.

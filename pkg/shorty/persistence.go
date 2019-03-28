@@ -35,19 +35,16 @@ VALUES (?, ?, ?)`
 	if tx, err = p.db.Begin(); err != nil {
 		return err
 	}
-	if stmt, err = tx.Prepare(query); err != nil {
+	if stmt, err = tx.PrepareContext(ctx, query); err != nil {
 		return err
 	}
 	defer stmt.Close()
 
 	if _, err = stmt.ExecContext(ctx, s.Short, s.URL, s.CreatedAt); err != nil {
+		_ = tx.Rollback()
 		return err
 	}
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 // Read database entry based on its short string, unique in the database.
