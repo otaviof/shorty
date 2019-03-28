@@ -1,7 +1,14 @@
+# application name, used in pkg, cmd and other places
 APP = shorty
+# build directory
 BUILD_DIR ?= build
+# temporary sqlite file for "go run"
+TEMP_DATABASE_FILE ?= .ci/shorty.sqlite
+# directory containing end-to-end tests
 E2E_TEST_DIR ?= test/e2e
+# docker image name
 DOCKER_IMAGE ?= "otaviof/$(APP)"
+# project version, and also docker image tag
 VERSION ?= $(shell cat ./version)
 
 .PHONY: default bootstrap build clean test
@@ -13,6 +20,9 @@ dep:
 
 bootstrap:
 	dep ensure -v -vendor-only
+
+run:
+	go run cmd/shorty/shorty.go --database-file $(TEMP_DATABASE_FILE)
 
 build: clean
 	go build -v -o $(BUILD_DIR)/$(APP) cmd/$(APP)/*
