@@ -1,14 +1,13 @@
 package shorty
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -23,150 +22,97 @@ func TestHandlerNew(t *testing.T) {
 	assert.NotNil(t, handler)
 }
 
-func TestHandlerEncodeErr(t *testing.T) {
-	err := fmt.Errorf("error")
+func recorderServeHTTP(router *gin.Engine, req *http.Request) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
-
-	handler.encodeErr(rr, err)
-
-	assert.Equal(t, "{\"err\":{},\"msg\":\"error\"}\n", rr.Body.String())
-}
-
-func TestHandlerReadBody(t *testing.T) {
-	body := []byte("string")
-	req, err := http.NewRequest("POST", "/", bytes.NewBuffer(body))
-	assert.Nil(t, err)
-
-	b, err := handler.readBody(req.Body)
-
-	assert.Nil(t, err)
-	assert.Equal(t, body, b)
-}
-
-func TestHandlerExtractShortened(t *testing.T) {
-	body := []byte(fmt.Sprintf("{\"url\":\"%s\"}", longURL))
-	req, err := http.NewRequest("POST", "/", bytes.NewBuffer(body))
-	assert.Nil(t, err)
-
-	rr := httptest.NewRecorder()
-	shortened, err := handler.extractShortened(rr, req)
-
-	assert.Nil(t, err)
-	assert.Equal(t, longURL, shortened.URL)
-}
-
-func TestHandlerWriteJSON(t *testing.T) {
-	rr := httptest.NewRecorder()
-
-	handler.writeJSON(rr, map[string]string{"test": "test"})
-
-	assert.Equal(t, "{\"test\":\"test\"}", rr.Body.String())
+	router.ServeHTTP(rr, req)
+	return rr
 }
 
 func TestHandlerSlash(t *testing.T) {
+	router := gin.Default()
+	router.GET("/", handler.Slash)
+
 	req, err := http.NewRequest("GET", "/", nil)
 	assert.Nil(t, err)
 
-	rr := httptest.NewRecorder()
-	h := http.HandlerFunc(handler.Slash())
-
-	h.ServeHTTP(rr, req)
+	rr := recorderServeHTTP(router, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "{\"app\":\"shorty\"}", rr.Body.String())
 }
 
-func TestHandlerRetrieve(t *testing.T) {
-	req, err := http.NewRequest("GET", "/", nil)
-	assert.Nil(t, err)
-
-	rr := httptest.NewRecorder()
-
-	_ = handler.persistence.Write(&Shortened{Short: "short", URL: "URL", CreatedAt: 0})
-	shortened, err := handler.retrieve(rr, req, "short")
-
-	assert.Nil(t, err)
-	assert.Equal(t, "URL", shortened.URL)
-}
-
 func TestHandlerCreateWithoutShort(t *testing.T) {
+	router := gin.Default()
+	router.POST("/", handler.Create)
+
 	payload := strings.NewReader(fmt.Sprintf("{\"url\":\"%s\"}", longURL))
-
-	r := mux.NewRouter()
-	r.HandleFunc("/", handler.Create())
-
-	ts := httptest.NewServer(r)
-	res, err := http.Post(fmt.Sprintf("%s/", ts.URL), "application/json", payload)
-
+	req, err := http.NewRequest("POST", "/", payload)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+	rr := recorderServeHTTP(router, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestHandlerCreateWithInvalidBody(t *testing.T) {
+	router := gin.Default()
+	router.POST("/:short", handler.Create)
+
 	payload := strings.NewReader("bogus")
-
-	r := mux.NewRouter()
-	r.HandleFunc("/{short}", handler.Create())
-
-	ts := httptest.NewServer(r)
-	res, err := http.Post(fmt.Sprintf("%s/%s", ts.URL, short), "application/json", payload)
-
+	req, err := http.NewRequest("POST", fmt.Sprintf("/%s", short), payload)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusUnprocessableEntity, res.StatusCode)
+
+	rr := recorderServeHTTP(router, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestHandlerCreate(t *testing.T) {
+	router := gin.Default()
+	router.POST("/:short", handler.Create)
+
 	payload := strings.NewReader(fmt.Sprintf("{\"url\":\"%s\"}", longURL))
-
-	r := mux.NewRouter()
-	r.HandleFunc("/{short}", handler.Create())
-
-	ts := httptest.NewServer(r)
-	res, err := http.Post(fmt.Sprintf("%s/%s", ts.URL, short), "application/json", payload)
-
+	req, err := http.NewRequest("POST", fmt.Sprintf("/%s", short), payload)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusCreated, res.StatusCode)
+
+	rr := recorderServeHTTP(router, req)
+
+	assert.Equal(t, http.StatusCreated, rr.Code)
 }
 
 func TestHandlerReadWithoutShort(t *testing.T) {
-	r := mux.NewRouter()
-	r.HandleFunc("/", handler.Read())
+	router := gin.Default()
+	router.GET("/", handler.Read)
 
-	ts := httptest.NewServer(r)
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/", ts.URL), nil)
-
-	transport := http.Transport{}
-	res, err := transport.RoundTrip(req)
-
+	req, err := http.NewRequest("GET", "/", nil)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+	rr := recorderServeHTTP(router, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestHandlerReadNotFound(t *testing.T) {
-	r := mux.NewRouter()
-	r.HandleFunc("/{short}", handler.Read())
+	router := gin.Default()
+	router.GET("/:short", handler.Read)
 
-	ts := httptest.NewServer(r)
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/notfound", ts.URL), nil)
-
-	transport := http.Transport{}
-	res, err := transport.RoundTrip(req)
-
+	req, err := http.NewRequest("GET", "/notfound", nil)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusNoContent, res.StatusCode)
+
+	rr := recorderServeHTTP(router, req)
+
+	assert.Equal(t, http.StatusNoContent, rr.Code)
 }
 
 func TestHandlerRead(t *testing.T) {
-	r := mux.NewRouter()
-	r.HandleFunc("/{short}", handler.Read())
+	router := gin.Default()
+	router.GET("/:short", handler.Read)
 
-	ts := httptest.NewServer(r)
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/%s", ts.URL, short), nil)
-
-	transport := http.Transport{}
-	res, err := transport.RoundTrip(req)
-
+	req, err := http.NewRequest("GET", fmt.Sprintf("/%s", short), nil)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusTemporaryRedirect, res.StatusCode)
-	assert.Equal(t, longURL, res.Header.Get("location"))
+
+	rr := recorderServeHTTP(router, req)
+
+	assert.Equal(t, http.StatusTemporaryRedirect, rr.Code)
+	assert.Equal(t, longURL, rr.Result().Header.Get("location"))
 }
