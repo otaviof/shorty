@@ -22,11 +22,12 @@ arbitrary short string.
 
 For instance, to create a short link to "google.nl" as "ggl", execute:
 
-	curl -X POST http://127.0.0.1:8000/shorty -d '{ "url": "https://github.com/otaviof/shorty" }'
+	curl -X POST http://127.0.0.1:8000/shorty/shorty \
+		-d '{ "url": "https://github.com/otaviof/shorty" }'
 
 After registering the short link, you can use "curl" again to follow the redirect:
 
-	curl -L http://127.0.0.1:8000/shorty
+	curl -L http://127.0.0.1:8000/shorty/shorty
 
 Backend persistence is done using SQLite, you can inform more options in command-line to use an
 alternative database-file and connection flags. Short links can't be repeated, since it's a
