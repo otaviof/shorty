@@ -30,14 +30,12 @@ func (h *Handler) Create(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Errorf("short is not found as sub-path"))
 		return
 	}
-
-	if err = c.BindJSON(&shortened); err != nil {
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, err)
+	if err = c.ShouldBindJSON(&shortened); err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, h.mapErr(err))
 		return
 	}
-
 	if err = h.validateURL(c.Request, shortened.URL); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, h.mapErr(err))
 		return
 	}
 
@@ -46,7 +44,12 @@ func (h *Handler) Create(c *gin.Context) {
 
 	log.Printf("Saving short string '%s' for URL '%s'", shortened.Short, shortened.URL)
 	if err = h.persistence.Write(c.Request.Context(), &shortened); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		status := http.StatusInternalServerError
+		log.Printf("Persistence error: '%s'", err)
+		if h.persistence.IsErrUniqueConstraint(err) {
+			status = http.StatusConflict
+		}
+		c.AbortWithStatusJSON(status, h.mapErr(err))
 		return
 	}
 
@@ -66,8 +69,10 @@ func (h *Handler) Read(c *gin.Context) {
 	}
 
 	log.Printf("Searching for long URL for short string '%s'", short)
-	if shortened, err = h.persistence.Read(c.Request.Context(), short); err != nil && !h.persistence.IsErrNoRows(err) {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+	if shortened, err = h.persistence.Read(
+		c.Request.Context(), short,
+	); err != nil && !h.persistence.IsErrNoRows(err) {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, h.mapErr(err))
 		return
 	}
 
@@ -103,6 +108,11 @@ func (h *Handler) validateURL(r *http.Request, longURL string) error {
 	}
 
 	return nil
+}
+
+// mapErr include error message along side error codes.
+func (h *Handler) mapErr(err error) gin.H {
+	return gin.H{"err": err, "msg": err.Error()}
 }
 
 // NewHandler creates a new handler instance.

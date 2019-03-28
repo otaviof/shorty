@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	"contrib.go.opencensus.io/integrations/ocsql"
@@ -96,6 +97,11 @@ func (p *Persistence) IsErrNoRows(err error) bool {
 	return sql.ErrNoRows == err
 }
 
+// IsErrUniqueConstraint check if informed error is about violation of unique constraint.
+func (p *Persistence) IsErrUniqueConstraint(err error) bool {
+	return strings.HasPrefix(err.Error(), "UNIQUE constraint failed")
+}
+
 // Close terminate the connection with database.
 func (p *Persistence) Close() {
 	if err := p.db.Close(); err != nil {
@@ -109,7 +115,7 @@ func NewPersistence(config *Config) (*Persistence, error) {
 	var err error
 
 	if driverName, err = ocsql.Register("sqlite3", ocsql.WithAllTraceOptions()); err != nil {
-		log.Fatalf("failed to register ocql driver: %v\n", err)
+		log.Fatalf("failed to register ocsql driver: %v\n", err)
 		return nil, err
 	}
 	ocsql.RegisterAllViews()

@@ -14,6 +14,22 @@ import (
 
 var handler *Handler
 
+func TestHandlerMapErr(t *testing.T) {
+	err := fmt.Errorf("error")
+	assert.Equal(t, gin.H{"err": err, "msg": err.Error()}, handler.mapErr(err))
+}
+
+func TestHandlerValidateURL(t *testing.T) {
+	req, err := http.NewRequest("GET", "http://shorty.com/shorty", nil)
+	assert.Nil(t, err)
+
+	assert.Nil(t, handler.validateURL(req, "http://long.url.com/path"))
+	assert.NotNil(t, handler.validateURL(req, ""))
+	assert.NotNil(t, handler.validateURL(req, "http://127.0.0.1/path"))
+	assert.NotNil(t, handler.validateURL(req, "http://localhost/path"))
+	assert.NotNil(t, handler.validateURL(req, "http://shorty.com/shorty"))
+}
+
 func TestHandlerNew(t *testing.T) {
 	DeleteDatabaseFile(t)
 	p, _ := NewPersistence(&Config{DatabaseFile: databaseFile})
@@ -64,7 +80,7 @@ func TestHandlerCreateWithInvalidBody(t *testing.T) {
 
 	rr := recorderServeHTTP(router, req)
 
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, rr.Code)
 }
 
 func TestHandlerCreate(t *testing.T) {
@@ -78,6 +94,18 @@ func TestHandlerCreate(t *testing.T) {
 	rr := recorderServeHTTP(router, req)
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
+}
+
+func TestHandlerCreateAlreadyExists(t *testing.T) {
+	router := gin.Default()
+	router.POST("/:short", handler.Create)
+
+	payload := strings.NewReader(fmt.Sprintf("{\"url\":\"%s\"}", longURL))
+	req, err := http.NewRequest("POST", fmt.Sprintf("/%s", short), payload)
+	assert.Nil(t, err)
+
+	rr := recorderServeHTTP(router, req)
+	assert.Equal(t, http.StatusConflict, rr.Code)
 }
 
 func TestHandlerReadWithoutShort(t *testing.T) {
