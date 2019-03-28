@@ -40,6 +40,6 @@ func NewConfig() *Config {
 		ReadTimeout:  10,
 		IdleTimeout:  60,
 		DatabaseFile: "/var/lib/shorty/shorty.sqlite",
-		SQLiteFlags:  "?_busy_timeout=5000&cache=shared&mode=rwc",
+		SQLiteFlags:  "_busy_timeout=5000&cache=shared&mode=rwc",
 	}
 }

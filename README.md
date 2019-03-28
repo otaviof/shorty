@@ -49,7 +49,7 @@ docker run --publish "8000:8000" --volume "<VOLUME_PATH>:/var/lib/shorty" otavio
 The following example shows how to add a short link to a URL via `curl`.
 
 ``` bash
-curl -X POST http://127.0.0.1:8000/shorty -d '{ "url": "https://github.com/otaviof/shorty" }'
+curl -X POST http://127.0.0.1:8000/shorty/shorty -d '{ "url": "https://github.com/otaviof/shorty" }'
 ```
 
 As output, you should see:
@@ -65,7 +65,7 @@ As output, you should see:
 And then, to `curl` with redirect to original URL:
 
 ``` bash
-curl -L http://127.0.0.1:8000/shorty
+curl -L http://127.0.0.1:8000/shorty/shorty
 ```
 
 ## Command-Line Arguments
@@ -93,25 +93,27 @@ Where the following flags are available:
 
 ## Instrumentation
 
-Over the endpoint `/metrics` this application offers Prometheus compatible metrics. For instance:
+Over the endpoint `/metrics` this application offers Prometheus compatible metrics, those are
+collected using [OpenCensus](https://opencensus.io/):
 
 ``` bash
 $ curl -s http://127.0.0.1:8000/metrics |tail
-http_response_size_bytes{handler="read",quantile="0.5"} 0
-http_response_size_bytes{handler="read",quantile="0.9"} 0
-http_response_size_bytes{handler="read",quantile="0.99"} 0
-http_response_size_bytes_sum{handler="read"} 0
-http_response_size_bytes_count{handler="read"} 4
-http_response_size_bytes{handler="slash",quantile="0.5"} 16
-http_response_size_bytes{handler="slash",quantile="0.9"} 16
-http_response_size_bytes{handler="slash",quantile="0.99"} 16
-http_response_size_bytes_sum{handler="slash"} 32
-http_response_size_bytes_count{handler="slash"} 2
+opencensus_io_http_server_response_bytes_bucket{le="6.7108864e+07"} 4
+opencensus_io_http_server_response_bytes_bucket{le="2.68435456e+08"} 4
+opencensus_io_http_server_response_bytes_bucket{le="1.073741824e+09"} 4
+opencensus_io_http_server_response_bytes_bucket{le="4.294967296e+09"} 4
+opencensus_io_http_server_response_bytes_bucket{le="+Inf"} 4
+opencensus_io_http_server_response_bytes_sum 3845
+opencensus_io_http_server_response_bytes_count 4
+# HELP opencensus_io_http_server_response_count_by_status_code Server response count by status code
+# TYPE opencensus_io_http_server_response_count_by_status_code counter
+opencensus_io_http_server_response_count_by_status_code{http_status="200"} 4
 ```
 
-The endpoints are named `read`, `create` and `slash`, where `read` redirect the requests while
-`create` receive POST requests to save new URLs. The root endpoint, or `slash`, only display the
-application name.
+You can find documentation about HTTP metrics on OpenCensus
+[documentation](https://opencensus.io/guides/http/go/net_http/server/#metrics). Furthermore, Shorty
+is integrated with [OCSQL](https://github.com/opencensus-integrations/ocsql), you can read recorded
+metrics [documentation here](https://github.com/opencensus-integrations/ocsql#recorded-metrics).
 
 # Persistence
 

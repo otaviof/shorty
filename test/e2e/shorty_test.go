@@ -154,7 +154,7 @@ func getMetrics(t *testing.T) {
 
 // postShort drives the tests for the post actions.
 func postShort(t *testing.T) {
-	postURL := fmt.Sprintf("%s/%s", testURL(), shortURL)
+	postURL := fmt.Sprintf("%s/shorty/%s", testURL(), shortURL)
 
 	postShortEmptyBody(t, postURL)
 	postShortIncompleteBody(t, postURL)
@@ -211,13 +211,15 @@ func postShortCompleteBody(t *testing.T, postURL string) {
 
 // getShort drives the tests for get related actions.
 func getShort(t *testing.T) {
-	getShortNoContent(t)
-	getShortExisting(t)
+	getURL := fmt.Sprintf("%s/shorty", testURL())
+
+	getShortNoContent(t, getURL)
+	getShortExisting(t, getURL)
 }
 
 // getShortNoContent tries to get a non-existing short string.
-func getShortNoContent(t *testing.T) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/bogus", testURL()), nil)
+func getShortNoContent(t *testing.T, getURL string) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/bogus", getURL), nil)
 	assert.Nil(t, err)
 
 	t.Logf("Get on bogus URL (%s)", req.URL.String())
@@ -227,8 +229,8 @@ func getShortNoContent(t *testing.T) {
 }
 
 // getShortExisting retrieve a existing shortened object.
-func getShortExisting(t *testing.T) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", testURL(), shortURL), nil)
+func getShortExisting(t *testing.T, getURL string) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", getURL, shortURL), nil)
 	assert.Nil(t, err)
 
 	t.Logf("Get existing short sub-path (%s)", req.URL.String())

@@ -1,10 +1,14 @@
 package shorty
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
+	"strings"
 	"sync"
 
+	"contrib.go.opencensus.io/integrations/ocsql"
 	_ "github.com/mattn/go-sqlite3" // sqlite driver
 )
 
@@ -16,7 +20,7 @@ type Persistence struct {
 }
 
 // Write creates a new entry in the database.
-func (p *Persistence) Write(s *Shortened) error {
+func (p *Persistence) Write(ctx context.Context, s *Shortened) error {
 	var tx *sql.Tx
 	var stmt *sql.Stmt
 	var err error
@@ -31,24 +35,20 @@ VALUES (?, ?, ?)`
 	if tx, err = p.db.Begin(); err != nil {
 		return err
 	}
-	if stmt, err = tx.Prepare(query); err != nil {
+	if stmt, err = tx.PrepareContext(ctx, query); err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	if _, err = stmt.Exec(s.Short, s.URL, s.CreatedAt); err != nil {
+	if _, err = stmt.ExecContext(ctx, s.Short, s.URL, s.CreatedAt); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 // Read database entry based on its short string, unique in the database.
-func (p *Persistence) Read(short string) (*Shortened, error) {
+func (p *Persistence) Read(ctx context.Context, short string) (*Shortened, error) {
 	var rows *sql.Rows
 	var err error
 
@@ -57,7 +57,7 @@ SELECT short, url, created_at
 FROM shorty
 WHERE short = ?`
 
-	if rows, err = p.db.Query(query, short); err != nil {
+	if rows, err = p.db.QueryContext(ctx, query, short); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -94,6 +94,11 @@ func (p *Persistence) IsErrNoRows(err error) bool {
 	return sql.ErrNoRows == err
 }
 
+// IsErrUniqueConstraint check if informed error is about violation of unique constraint.
+func (p *Persistence) IsErrUniqueConstraint(err error) bool {
+	return strings.HasPrefix(err.Error(), "UNIQUE constraint failed")
+}
+
 // Close terminate the connection with database.
 func (p *Persistence) Close() {
 	if err := p.db.Close(); err != nil {
@@ -103,11 +108,21 @@ func (p *Persistence) Close() {
 
 // NewPersistence creates a new persistence instance, opens database connection and add schema.
 func NewPersistence(config *Config) (*Persistence, error) {
+	var driverName string
 	var err error
 
-	log.Printf("New database connection, data-file at '%s'", config.DatabaseFile)
+	if driverName, err = ocsql.Register("sqlite3", ocsql.WithAllTraceOptions()); err != nil {
+		log.Fatalf("failed to register ocsql driver: %v\n", err)
+		return nil, err
+	}
+	ocsql.RegisterAllViews()
+
+	connStr := fmt.Sprintf("%s?%s", config.DatabaseFile, config.SQLiteFlags)
+	log.Printf("New database connection, data-file at '%s'", connStr)
+
 	p := &Persistence{config: config, mu: &sync.Mutex{}}
-	if p.db, err = sql.Open("sqlite3", config.DatabaseFile); err != nil {
+
+	if p.db, err = sql.Open(driverName, connStr); err != nil {
 		return nil, err
 	}
 	if err = p.addSchema(); err != nil {
