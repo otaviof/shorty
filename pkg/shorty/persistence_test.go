@@ -1,6 +1,7 @@
 package shorty
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -36,16 +37,16 @@ func TestPersistenceNew(t *testing.T) {
 func TestPersistenceWrite(t *testing.T) {
 	shortened := &Shortened{Short: short, URL: longURL, CreatedAt: createdAt}
 
-	err := persistence.Write(shortened)
+	err := persistence.Write(context.Background(), shortened)
 	assert.Nil(t, err)
 
 	// should return error on trying to re-insert
-	err = persistence.Write(shortened)
+	err = persistence.Write(context.Background(), shortened)
 	assert.Error(t, err)
 }
 
 func TestPersistenceRead(t *testing.T) {
-	shortened, err := persistence.Read(short)
+	shortened, err := persistence.Read(context.Background(), short)
 
 	assert.Nil(t, err)
 	assert.Equal(t, short, shortened.Short)
