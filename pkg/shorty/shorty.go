@@ -6,14 +6,20 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
+	ocpromexp "go.opencensus.io/exporter/prometheus"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/trace"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Shorty main application component.
 type Shorty struct {
 	config      *Config
-	router      *mux.Router
+	engine      *gin.Engine
+	exporter    *ocpromexp.Exporter
 	handler     *Handler
 	persistence *Persistence
 	stopChan    chan os.Signal
@@ -27,7 +33,16 @@ func (s Shorty) httpServer() {
 		ReadTimeout:  time.Duration(s.config.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(s.config.WriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(s.config.IdleTimeout) * time.Second,
-		Handler:      s.router,
+		Handler: &ochttp.Handler{
+			Handler: s.engine,
+			GetStartOptions: func(r *http.Request) trace.StartOptions {
+				startOptions := trace.StartOptions{}
+				if r.URL.Path == "/metrics" {
+					startOptions.Sampler = trace.NeverSample()
+				}
+				return startOptions
+			},
+		},
 	}
 
 	go func() {
@@ -44,14 +59,27 @@ func (s Shorty) httpServer() {
 
 // setUpRoutes define how the routes are configured for this application.
 func (s *Shorty) setUpRoutes() {
-	s.router.Methods("GET").Path("/metrics").Name("metrics").
-		Handler(prometheus.Handler())
-	s.router.Methods("GET").Path("/").Name("slash").
-		Handler(Logger(prometheus.InstrumentHandlerFunc("slash", s.handler.Slash()), "slash"))
-	s.router.Methods("GET").Path("/{short}").Name("read").
-		Handler(Logger(prometheus.InstrumentHandlerFunc("read", s.handler.Read()), "read"))
-	s.router.Methods("POST").Path("/{short}").Name("create").
-		Handler(Logger(prometheus.InstrumentHandlerFunc("create", s.handler.Create()), "create"))
+	s.engine.GET("/", s.handler.Slash)
+	s.engine.POST("/shorty/:short", s.handler.Create)
+	s.engine.GET("/shorty/:short", s.handler.Read)
+	s.engine.GET("/metrics", gin.HandlerFunc(func(c *gin.Context) {
+		s.exporter.ServeHTTP(c.Writer, c.Request)
+	}))
+}
+
+func (s *Shorty) registerExporters() {
+	view.RegisterExporter(s.exporter)
+
+	if err := view.Register(
+		ochttp.ServerRequestCountView,
+		ochttp.ServerRequestBytesView,
+		ochttp.ServerResponseBytesView,
+		ochttp.ServerLatencyView,
+		ochttp.ServerRequestCountByMethod,
+		ochttp.ServerResponseCountByStatusCode,
+	); err != nil {
+		log.Fatalf("Error on registering metrics: '%s'", err)
+	}
 }
 
 // Run creates the runtime instance, add routes and start http-server.
@@ -72,15 +100,19 @@ func NewShorty(config *Config) (*Shorty, error) {
 	var persistence *Persistence
 	var err error
 
+	s := &Shorty{config: config, engine: gin.Default(), stopChan: make(chan os.Signal, 1)}
+
+	if s.exporter, err = ocpromexp.NewExporter(ocpromexp.Options{
+		Registry: prometheus.DefaultGatherer.(*prometheus.Registry),
+	}); err != nil {
+		return nil, err
+	}
+	s.registerExporters()
+
 	if persistence, err = NewPersistence(config); err != nil {
 		return nil, err
 	}
+	s.handler = NewHandler(persistence)
 
-	s := &Shorty{
-		config:   config,
-		router:   mux.NewRouter().StrictSlash(true),
-		handler:  NewHandler(persistence),
-		stopChan: make(chan os.Signal, 1),
-	}
 	return s, nil
 }
