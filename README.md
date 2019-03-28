@@ -2,11 +2,14 @@
     <img alt="Project Logo" src="https://raw.githubusercontent.com/otaviof/shorty/master/assets/logo/shorty.png"/>
 </p>
 <p align="center">
-    <a alt="Build Status" href="https://travis-ci.com/otaviof/shorty">
-        <img src="https://travis-ci.com/otaviof/shorty.svg?branch=master">
+    <a alt="GoReport" href="https://goreportcard.com/report/github.com/otaviof/shorty">
+        <img src="https://goreportcard.com/badge/github.com/otaviof/shorty">
     </a>
     <a alt="Code Coverage" href="https://codecov.io/gh/otaviof/shorty">
         <img src="https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg">
+    </a>
+    <a alt="Build Status" href="https://travis-ci.com/otaviof/shorty">
+        <img src="https://travis-ci.com/otaviof/shorty.svg?branch=master">
     </a>
 </p>
 
