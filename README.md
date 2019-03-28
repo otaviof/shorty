@@ -32,7 +32,10 @@ shorty --database-file /var/tmp/shorty.sqlite
 
 ## Docker
 
-To run Shorty via Docker, use:
+Images are stored on [Docker-Hub](https://hub.docker.com/r/otaviof/shorty), tags using a version
+number are stable releases, and `master` is built from latest commits on branch.
+
+For example, use:
 
 ``` bash
 docker run --publish "8000:8000" otaviof/shorty:latest
