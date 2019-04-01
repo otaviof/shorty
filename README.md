@@ -8,8 +8,11 @@
     <a alt="Code Coverage" href="https://codecov.io/gh/otaviof/shorty">
         <img src="https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg">
     </a>
-    <a alt="Build Status" href="https://travis-ci.com/otaviof/shorty">
+    <a alt="CI Status" href="https://travis-ci.com/otaviof/shorty">
         <img src="https://travis-ci.com/otaviof/shorty.svg?branch=master">
+    </a>
+    <a alt="Docker-Cloud Build Status" href="https://hub.docker.com/r/otaviof/shorty">
+        <img src="https://img.shields.io/docker/cloud/build/otaviof/shorty.svg">
     </a>
 </p>
 
