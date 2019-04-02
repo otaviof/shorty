@@ -8,6 +8,9 @@
     <a alt="Code Coverage" href="https://codecov.io/gh/otaviof/shorty">
         <img src="https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg">
     </a>
+    <a href="https://godoc.org/github.com/otaviof/shorty/pkg/shorty">
+        <img alt="GoDoc Reference" src="https://godoc.org/github.com/otaviof/shorty/pkg/shorty?status.svg">
+    </a>
     <a alt="CI Status" href="https://travis-ci.com/otaviof/shorty">
         <img src="https://travis-ci.com/otaviof/shorty.svg?branch=master">
     </a>
