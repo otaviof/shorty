@@ -74,7 +74,7 @@ func init() {
 
 	// command-line options
 	flags.String("address", "127.0.0.1:8000", "Listen address")
-	flags.String("database-file", "/var/lib/shorty/shorty.sqlite", "SQLite database file path")
+	flags.String("database-file", "", "database file path, use empty for in-memory only")
 	flags.Int("idle-timeout", 10, "HTTP connection idle-timeout in seconds")
 	flags.Int("read-timeout", 5, "HTTP connection read-timeout in seconds")
 	flags.Int("write-timeout", 30, "HTTP connection write-timeout in seconds")

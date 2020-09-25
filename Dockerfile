@@ -29,7 +29,6 @@ ENV GO_PROJECT="shorty"
 ENV USER_UID="1111" \
     GIN_MODE="release" \
     SHORTY_DATA="/var/lib/shorty" \
-    SHORTY_DATABASE_FILE="/var/lib/shorty/shorty.sqlite" \
     SHORTY_ADDRESS="0.0.0.0:8000"
 
 RUN apk --update add bash

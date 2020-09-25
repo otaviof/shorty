@@ -38,7 +38,6 @@ install:
 run:
 	go run $(GO_FLAGS) $(CMD) $(ARGS)
 
-serve: ARGS = --database-file $(TEMP_DATABASE_FILE)
 serve: run
 
 clean:

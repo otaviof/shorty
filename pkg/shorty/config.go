@@ -26,9 +26,6 @@ func (c *Config) Validate() error {
 	if c.IdleTimeout <= 0 {
 		return fmt.Errorf("invalid value for idle-timeout: '%d'", c.IdleTimeout)
 	}
-	if c.DatabaseFile == "" {
-		return fmt.Errorf("database-file is not informed: '%s'", c.DatabaseFile)
-	}
 	return nil
 }
 
@@ -39,7 +36,7 @@ func NewConfig() *Config {
 		WriteTimeout: 30,
 		ReadTimeout:  10,
 		IdleTimeout:  60,
-		DatabaseFile: "/var/lib/shorty/shorty.sqlite",
+		DatabaseFile: "",
 		SQLiteFlags:  "_busy_timeout=5000&cache=shared&mode=rwc",
 	}
 }

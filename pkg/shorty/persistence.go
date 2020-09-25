@@ -117,8 +117,14 @@ func NewPersistence(config *Config) (*Persistence, error) {
 	}
 	ocsql.RegisterAllViews()
 
-	connStr := fmt.Sprintf("%s?%s", config.DatabaseFile, config.SQLiteFlags)
-	log.Printf("New database connection, data-file at '%s'", connStr)
+	var connStr string
+	if config.DatabaseFile == "" {
+		log.Printf("Starting a in-memory database...")
+		connStr = fmt.Sprintf("file::memory:?cache=shared&%s", config.SQLiteFlags)
+	} else {
+		connStr = fmt.Sprintf("%s?%s", config.DatabaseFile, config.SQLiteFlags)
+	}
+	log.Printf("New database connection '%s'", connStr)
 
 	p := &Persistence{config: config, mu: &sync.Mutex{}}
 
