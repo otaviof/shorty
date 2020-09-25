@@ -1,61 +1,70 @@
-# application name, used in pkg, cmd and other places
 APP = shorty
-# build directory
-BUILD_DIR ?= build
+OUTPUT_DIR ?= _output
+
+CMD = ./cmd/$(APP)/...
+PKG = ./pkg/...
+E2E = ./test/e2e/...
+
+BIN ?= $(OUTPUT_DIR)/$(APP)
+
+GO_FLAGS ?= -v -mod=vendor
+GO_TEST_FLAGS ?= -race -cover
+
+ARGS ?=
+
 # temporary sqlite file for "go run"
 TEMP_DATABASE_FILE ?= .ci/shorty.sqlite
-# directory containing end-to-end tests
-E2E_TEST_DIR ?= test/e2e
+
 # docker image name
-DOCKER_IMAGE ?= "otaviof/$(APP)"
+IMAGE ?= "otaviof/$(APP)"
 # project version, and also docker image tag
 VERSION ?= $(shell cat ./version)
 
-.PHONY: default bootstrap build clean test
+# codecov authentication token
+CODECOV_TOKEN ?=
 
-default: build
+default: $(BIN)
 
-dep:
-	go get -u github.com/golang/dep/cmd/dep
+.PHONY: $(BIN)
+$(BIN):
+	go build $(GO_FLAGS) -o $(BIN) $(CMD)
 
-bootstrap:
-	dep ensure -v -vendor-only
+vendor:
+	go mod vendor
+
+install:
+	go install $(GO_FLAGS) $(CMD)
 
 run:
-	go run cmd/shorty/shorty.go --database-file $(TEMP_DATABASE_FILE)
+	go run $(GO_FLAGS) $(CMD) $(ARGS)
 
-build: clean
-	go build -v -o $(BUILD_DIR)/$(APP) cmd/$(APP)/*
-
-build-docker:
-	docker build --tag $(DOCKER_IMAGE):$(VERSION) .
+serve: ARGS = --database-file $(TEMP_DATABASE_FILE)
+serve: run
 
 clean:
-	rm -rf $(BUILD_DIR) > /dev/null
+	rm -rf $(OUTPUT_DIR) > /dev/null
 
-clean-vendor:
-	rm -rf ./vendor > /dev/null
+test: test-unit test-e2e
+
+.PHONY: test-unit
+test-unit:
+	go test $(GO_FLAGS) $(GO_TEST_FLAGS) $(CMD) $(PKG) $(ARGS)
+
+test-e2e:
+	go test $(GO_FLAGS) $(GO_TEST_FLAGS) $(E2E) $(ARGS)
+
+codecov:
+	mkdir .ci || true
+	curl -s -o .ci/codecov.sh https://codecov.io/bash
+	bash .ci/codecov.sh -t $(CODECOV_TOKEN)
+
+image:
+	docker build --tag $(IMAGE):$(VERSION) .
 
 release:
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	goreleaser --rm-dist
 
-release-docker: build-docker
-	docker tag $(DOCKER_IMAGE):$(VERSION) $(DOCKER_IMAGE):latest
-	docker push $(DOCKER_IMAGE):$(VERSION)
-	docker push $(DOCKER_IMAGE):latest
-
 snapshot:
 	goreleaser --rm-dist --snapshot
-
-test:
-	go test -race -coverprofile=coverage.txt -covermode=atomic -cover -v pkg/$(APP)/*
-
-integration:
-	go test -v $(E2E_TEST_DIR)/*
-
-codecov:
-	mkdir .ci || true
-	curl -s -o .ci/codecov.sh https://codecov.io/bash
-	bash .ci/codecov.sh -t $(CODECOV_TOKEN)

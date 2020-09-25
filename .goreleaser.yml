@@ -1,9 +1,6 @@
 ---
 project_name: shorty
-dist: ./build/dist
-
-archive:
-  format: tar.gz
+dist: ./_output/dist
 
 builds:
   - binary: shorty

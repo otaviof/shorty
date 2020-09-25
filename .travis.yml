@@ -1,14 +1,11 @@
 ---
 language: go
 go:
-  - 1.11.x
-install: true
+  - 1.15.x
 before_script:
-  - make dep
+  - make vendor
 script:
-  - make bootstrap
   - make
   - make test
-  - make integration
 after_success:
   - make codecov

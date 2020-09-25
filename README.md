@@ -2,19 +2,19 @@
     <img alt="Project Logo" src="https://raw.githubusercontent.com/otaviof/shorty/master/assets/logo/shorty.png"/>
 </p>
 <p align="center">
-    <a alt="GoReport" href="https://goreportcard.com/report/github.com/otaviof/shorty">
+    <a href="https://goreportcard.com/report/github.com/otaviof/shorty">
         <img src="https://goreportcard.com/badge/github.com/otaviof/shorty">
     </a>
-    <a alt="Code Coverage" href="https://codecov.io/gh/otaviof/shorty">
+    <a href="https://codecov.io/gh/otaviof/shorty">
         <img src="https://codecov.io/gh/otaviof/shorty/branch/master/graph/badge.svg">
     </a>
-    <a href="https://godoc.org/github.com/otaviof/shorty/pkg/shorty">
-        <img alt="GoDoc Reference" src="https://godoc.org/github.com/otaviof/shorty/pkg/shorty?status.svg">
+    <a href="https://pkg.go.dev/github.com/otaviof/shorty/pkg/shorty">
+        <img src="https://img.shields.io/badge/pkg.go.dev-godoc-007d9c?logo=go&logoColor=white">
     </a>
-    <a alt="CI Status" href="https://travis-ci.com/otaviof/shorty">
+    <a href="https://travis-ci.com/otaviof/shorty">
         <img src="https://travis-ci.com/otaviof/shorty.svg?branch=master">
     </a>
-    <a alt="Docker-Cloud Build Status" href="https://hub.docker.com/r/otaviof/shorty">
+    <a href="https://hub.docker.com/r/otaviof/shorty">
         <img src="https://img.shields.io/docker/cloud/build/otaviof/shorty.svg">
     </a>
 </p>
@@ -29,13 +29,13 @@ original URL. Simple like that.
 
 Install `shorty` using `go get`:
 
-``` bash
+```sh
 go get -x -u github.com/otaviof/shorty/cmd/shorty
 ```
 
 And then:
 
-``` bash
+```sh
 shorty --database-file /var/tmp/shorty.sqlite
 ```
 
@@ -46,13 +46,13 @@ number are stable releases, and `master` is built from latest commits on branch.
 
 For example, use:
 
-``` bash
+```sh
 docker run --publish "8000:8000" otaviof/shorty:latest
 ```
 
 Alternatively, you can share a local volume to persist its database file:
 
-``` bash
+```sh
 docker run --publish "8000:8000" --volume "<VOLUME_PATH>:/var/lib/shorty" otaviof/shorty:latest
 ```
 
@@ -60,13 +60,13 @@ docker run --publish "8000:8000" --volume "<VOLUME_PATH>:/var/lib/shorty" otavio
 
 The following example shows how to add a short link to a URL via `curl`.
 
-``` bash
+```sh
 curl -X POST http://127.0.0.1:8000/shorty/shorty -d '{ "url": "https://github.com/otaviof/shorty" }'
 ```
 
 As output, you should see:
 
-``` json
+```json
 {
   "short": "shorty",
   "url": "https://github.com/otaviof/shorty",
@@ -76,7 +76,7 @@ As output, you should see:
 
 And then, to `curl` with redirect to original URL:
 
-``` bash
+```sh
 curl -L http://127.0.0.1:8000/shorty/shorty
 ```
 
@@ -108,7 +108,7 @@ Where the following flags are available:
 Over the endpoint `/metrics` this application offers Prometheus compatible metrics, those are
 collected using [OpenCensus](https://opencensus.io/):
 
-``` bash
+```sh
 $ curl -s http://127.0.0.1:8000/metrics |tail
 opencensus_io_http_server_response_bytes_bucket{le="6.7108864e+07"} 4
 opencensus_io_http_server_response_bytes_bucket{le="2.68435456e+08"} 4
@@ -135,7 +135,7 @@ the records from the REST interface, and does not allow repetition of short stri
 On command-line or environment you can specify the location of the database file, by default data is
 located on `/var/lib/shorty` directory.
 
-# Development
+# Contributing
 
 ## Project Structure
 
@@ -162,19 +162,21 @@ Regarding the relevant files:
 
 ## Testing
 
-### Unit-Tests
-
 Unit tests are located on `pkg/shorty` directory, and using the suffix `_test`. To run unit-tests:
 
-``` bash
-make test
+```sh
+make test-unit
 ```
-
-### Integration-Tests
 
 Integration tests are on `test/e2e` directory. To run integration-tests:
 
 
-``` bash
-make integration
+```sh
+make test-e2e
+```
+
+And all tests can be triggered with:
+
+```sh
+make test
 ```

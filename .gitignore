@@ -1,6 +1,6 @@
+_output/
 .ci
 .env
 .vscode
 coverage.txt
-build
 vendor
