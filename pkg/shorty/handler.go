@@ -87,6 +87,16 @@ func (h *Handler) Read(c *gin.Context) {
 	c.JSONP(http.StatusTemporaryRedirect, shortened)
 }
 
+// List shows all shortened URLs as a array of entries.
+func (h *Handler) List(c *gin.Context) {
+	slice, err := h.persistence.List(c.Request.Context())
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, h.mapErr(err))
+	}
+	log.Printf("Found '%d' shortened entries.", len(slice))
+	c.JSONP(http.StatusOK, slice)
+}
+
 // validateURL check if informed URL is valid and does not point to the same redirect service.
 func (h *Handler) validateURL(r *http.Request, longURL string) error {
 	var parsed *url.URL

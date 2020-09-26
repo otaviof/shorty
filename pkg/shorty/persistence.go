@@ -73,6 +73,28 @@ WHERE short = ?`
 	return s, nil
 }
 
+// List returns all entries.
+func (p *Persistence) List(ctx context.Context) ([]*Shortened, error) {
+	query := `
+SELECT short, url, created_at
+  FROM shorty`
+	rows, err := p.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	slice := []*Shortened{}
+	for rows.Next() {
+		s := &Shortened{}
+		if err := rows.Scan(&s.Short, &s.URL, &s.CreatedAt); err != nil {
+			return nil, err
+		}
+		slice = append(slice, s)
+	}
+	return slice, nil
+}
+
 // addSchema create shorty table, if not present yet.
 func (p *Persistence) addSchema() error {
 	log.Printf("Creating 'shorty' table, if not present.")

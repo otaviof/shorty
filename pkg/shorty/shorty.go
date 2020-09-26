@@ -59,6 +59,7 @@ func (s Shorty) httpServer() {
 // setUpRoutes define how the routes are configured for this application.
 func (s *Shorty) setUpRoutes() {
 	s.engine.GET("/", s.handler.Slash)
+	s.engine.GET("/shorty/", s.handler.List)
 	s.engine.POST("/shorty/:short", s.handler.Create)
 	s.engine.GET("/shorty/:short", s.handler.Read)
 	s.engine.GET("/metrics", gin.HandlerFunc(func(c *gin.Context) {
