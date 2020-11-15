@@ -1,0 +1,8 @@
+---
+defaultBaseImage: fedora:latest
+buildOverrides:
+  github.com/otaviof/shorty/cmd/shorty:
+    env:
+      - name: CGO_ENABLED
+        value: "1"
+

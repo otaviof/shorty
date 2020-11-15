@@ -1,0 +1,20 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shorty
+spec:
+  selector:
+    matchLabels:
+      foo: shorty
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        foo: shorty
+    spec:
+      containers:
+        - name: shorty
+          image: ko://github.com/otaviof/shorty/cmd/shorty
+          ports:
+            - containerPort: 8080
